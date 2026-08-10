@@ -1,1 +1,63 @@
+--¿Por qué usaste LEFT JOIN para la Consulta 1 y no INNER JOIN? ¿Qué se perdería si usaras INNER JOIN?
 
+Utilicé LEFT JOIN porque la pregunta de negocio busca identificar qué productos del catálogo nunca fueron vendidos. 
+En esta consulta, la tabla productos se encuentra a la izquierda:
+
+FROM productos p
+LEFT JOIN ventas v
+    ON p.producto_id = v.producto_id
+
+El LEFT JOIN permite conservar todos los productos de la tabla productos, aunque no tengan ninguna venta relacionada.
+En este caso, los productos 108 (Hub USB-C 7p) y 109 (Parlante Bluetooth) nunca fueron vendidos. Por eso aparecen en el resultado con valores NULL en las columnas correspondientes a la tabla ventas.
+
+--¿Por qué usaste RIGHT JOIN para la Consulta 2? ¿Qué tabla está a la izquierda y cuál a la derecha en tu consulta?
+
+Utilicé RIGHT JOIN porque en esta consulta necesito conservar todas las ventas registradas, incluso aquellas cuyo producto no existe en el catálogo.
+La consulta comienza de la siguiente manera:
+
+FROM productos p
+RIGHT JOIN ventas v
+    ON p.producto_id = v.producto_id
+
+En esta consulta:
+La tabla productos está a la izquierda.
+La tabla ventas está a la derecha.
+
+El RIGHT JOIN conserva todas las filas de la tabla que está a la derecha, es decir, todas las ventas.
+Esto permite detectar ventas que tienen un producto_id que no existe en el catálogo.
+
+Un ejemplo concreto es la venta:
+
+venta_id = 10
+producto_id = 999
+
+El producto 999 no existe en la tabla productos. Sin embargo, la venta no desaparece porque el RIGHT JOIN conserva todas las filas de ventas.
+Después utilizamos:
+
+WHERE p.producto_id IS NULL
+
+para mostrar solamente las ventas que no tienen un producto correspondiente en el catálogo.
+De esta manera se identifica la venta 10 como un registro huérfano, que podría representar un error de carga o un problema de integridad de los datos.
+
+--¿Qué representan los valores NULL en cada resultado? Explicá con un ejemplo concreto de los datos qué significa que venta_id sea NULL en la Consulta 1 y que producto_id de productos sea NULL en la Consulta2.
+
+Los valores NULL representan que no existe una coincidencia entre las dos tablas.
+Sin embargo, el significado del NULL depende de qué consulta estemos realizando.
+
+--¿Cuándo usarías FULL OUTER JOIN en un caso real de negocio?
+
+Utilizaría FULL OUTER JOIN cuando necesitara realizar una auditoría completa entre dos fuentes de información y quisiera conservar todos los registros, tanto los que tienen coincidencias como los que no.
+
+Por ejemplo, una empresa podría utilizarlo para comparar:
+un catálogo de productos con las ventas;
+un listado de clientes con una base de facturación;
+un sistema de stock con un sistema de ventas;
+una base de proveedores con las órdenes de compra.
+
+En el caso de MiniStore, el FULL OUTER JOIN permite obtener en una sola consulta una visión completa de la relación entre productos y ventas.
+De esta manera podemos identificar:
+
+Productos que tienen ventas.
+Productos que existen pero nunca fueron vendidos.
+Ventas que tienen un producto válido.
+Ventas cuyo producto no existe en el catálogo.
